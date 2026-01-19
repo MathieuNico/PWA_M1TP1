@@ -2,7 +2,10 @@
   <div class="reception-page">
     <header class="reception-header">
       <button class="back-btn" @click="goBack">← Retour</button>
-      <h1>🎯 Réception</h1>
+      <div class="header-content">
+        <h1>🎯 Réception</h1>
+        <BatteryIndicator />
+      </div>
     </header>
 
     <div class="reception-content">
@@ -47,7 +50,7 @@
         <div class="user-info">
           <img v-if="user.avatar" :src="user.avatar" class="user-avatar" alt="Avatar" />
           <div>
-            <h3>Bienvenue, {{ user.username }} !</h3>
+            <h3>Bienvenue, {{ u  ser.username }} !</h3>
             <button @click="logout" class="logout-btn">Déconnexion</button>
           </div>
         </div>
@@ -134,6 +137,7 @@
 <script setup lang="ts">
 import { ref, onMounted, inject } from 'vue';
 import CameraCapture from './CameraCapture.vue';
+import BatteryIndicator from './BatteryIndicator.vue';
 
 interface User {
   username: string;
@@ -294,6 +298,13 @@ function sendNotification(title: string, body: string) {
   align-items: center;
   gap: 1rem;
   color: #fff;
+  justify-content: space-between;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .back-btn {

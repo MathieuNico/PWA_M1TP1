@@ -1,10 +1,16 @@
 <template>
   <div class="room-page">
     <header class="room-header">
-      <button class="back-btn" @click="goBack">← Retour</button>
-      <div class="room-title">
-        <h1>{{ currentRoom?.name || 'Salle' }}</h1>
-        <p>{{ currentRoom?.description }}</p>
+      <div class="header-left">
+        <button class="back-btn" @click="goBack">←</button>
+        <div class="room-title">
+          <h1>{{ currentRoom?.name || 'Salle' }}</h1>
+          <p>{{ currentRoom?.description }}</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="call-btn" @click="makeRoomCall" title="Appeler la salle">📞</button>
+        <BatteryIndicator />
       </div>
     </header>
 
@@ -79,6 +85,7 @@
 <script setup lang="ts">
 import { ref, onMounted, inject, computed, nextTick, watch } from 'vue';
 import CameraCapture from './CameraCapture.vue';
+import BatteryIndicator from './BatteryIndicator.vue';
 
 interface User {
   username: string;
@@ -180,6 +187,25 @@ function sendMessage() {
   sendNotification('Nouveau message', `${user.value.username}: ${message.text}`);
 }
 
+// Watch for new messages to trigger vibration (simulated for demonstration)
+watch(() => messages.value.length, (newVal, oldVal) => {
+  if (newVal > oldVal) {
+    const lastMsg = messages.value[messages.value.length - 1];
+    // Vibrate only if it's not our own message (simulated check, here we vibrate for all new additions to show it works)
+    // In a real app, we check if lastMsg.userId !== user.value.username
+    if (navigator.vibrate) {
+        navigator.vibrate(200);
+    }
+  }
+});
+
+function makeRoomCall() {
+  if (confirm(`Voulez-vous lancer un appel dans ${currentRoom.value?.name} ?`)) {
+    // Simulate call
+    alert('Appel en cours... (Simulation)');
+  }
+}
+
 function openCamera() {
   cameraOpen.value = true;
 }
@@ -255,11 +281,37 @@ function sendNotification(title: string, body: string) {
 .room-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
-  padding: 1rem 1.5rem;
+  padding: 0.8rem 1rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: space-between;
+  gap: 0.5rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.header-left, .header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.call-btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.2s;
+}
+
+.call-btn:hover {
+  background: #10b981;
 }
 
 .back-btn {

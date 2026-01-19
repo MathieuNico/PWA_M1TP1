@@ -50,7 +50,7 @@
         <div class="user-info">
           <img v-if="user.avatar" :src="user.avatar" class="user-avatar" alt="Avatar" />
           <div>
-            <h3>Bienvenue, {{ u  ser.username }} !</h3>
+            <h3>Bienvenue, {{ user.username }} !</h3>
             <button @click="logout" class="logout-btn">Déconnexion</button>
           </div>
         </div>

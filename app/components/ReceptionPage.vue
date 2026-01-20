@@ -178,15 +178,38 @@ function loadUser() {
   }
 }
 
-function loadRooms() {
-  const stored = localStorage.getItem('pwa_rooms');
-  if (stored) {
-    rooms.value = JSON.parse(stored);
+// Update Room interface to match API if needed, but local `id` and `name` are enough
+// API returns: { success: true, data: { "Room Name": { ... }, ... } }
+
+async function loadRooms() {
+  try {
+    const response = await fetch('https://api.tools.gavago.fr/socketio/api/rooms');
+    const data = await response.json();
+
+    if (data.success && data.data) {
+      // Map API object to Room array
+      // API uses room name as key. We don't have explicit IDs, so we'll use name as ID for consistency or generate one.
+      // But socket join likely uses the room name. Let's use name as ID for now to be safe with existing logic which passes ID.
+      rooms.value = Object.keys(data.data).map(key => ({
+        id: key, // Use name as ID
+        name: key,
+        description: `Salon ${key}`, // API doesn't seem to have description
+        createdAt: Date.now() // Fake date
+      }));
+      
+      // Save to localStorage so RoomPage can access it
+      localStorage.setItem('pwa_rooms', JSON.stringify(rooms.value));
+    }
+  } catch (err) {
+    console.error('Erreur chargement salles:', err);
+    // Fallback to local if needed, or show error. For now, we prefer to show nothing/error than stale local data if context is online.
   }
 }
 
 function saveRooms() {
-  localStorage.setItem('pwa_rooms', JSON.stringify(rooms.value));
+  // We cannot save to this API via simple save. 
+  // We only keep this if we want to cache, but let's disable local save to avoid confusion.
+  // localStorage.setItem('pwa_rooms', JSON.stringify(rooms.value));
 }
 
 function openCamera() {
@@ -233,20 +256,25 @@ function createRoom() {
     createdAt: Date.now()
   };
 
+  // For now, we push locally. In a real integration with this API, we would join the room and it might get created.
+  // The API seems to show rooms that have clients.
   rooms.value.push(room);
-  saveRooms();
+  // saveRooms(); // Disabled saving to local storage
 
   newRoomName.value = '';
   newRoomDesc.value = '';
   showCreateRoom.value = false;
   
-  sendNotification('Salle créée !', `La salle "${room.name}" a été créée.`);
+  sendNotification('Salle créée !', `La salle "${room.name}" a été ajoutée localement.`);
+  
+  // Directly join it
+  joinRoom(room.id);
 }
 
 function deleteRoom(roomId: string) {
-  if (confirm('Voulez-vous vraiment supprimer cette salle ?')) {
+  if (confirm('Voulez-vous masquer cette salle localement ?')) {
     rooms.value = rooms.value.filter(r => r.id !== roomId);
-    saveRooms();
+    // saveRooms();
     
     // Also delete room messages
     localStorage.removeItem(`pwa_messages_${roomId}`);

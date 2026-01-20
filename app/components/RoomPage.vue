@@ -111,6 +111,7 @@ interface Message {
 const navigate = inject<(to: string, params?: any) => void>('navigate');
 const currentRoomId = inject<{ value: string | null }>('currentRoomId');
 
+const { $socket } = useNuxtApp();
 const user = ref<User | null>(null);
 const currentRoom = ref<Room | null>(null);
 const messages = ref<Message[]>([]);
@@ -124,12 +125,116 @@ onMounted(() => {
   loadRoom();
   loadMessages();
   scrollToBottom();
+
+  if ($socket) {
+    if (!$socket.connected) {
+      $socket.connect();
+    }
+    
+    // Listen for incoming messages
+    // Event: 'chat-msg'
+    // Payload: { content, dateEmis, roomName, categorie, userId, serverId }
+    
+    $socket.on('chat-msg', (data: any) => {
+      console.log('Socket message received:', data);
+      handleIncomingMessage(data);
+    });
+
+    $socket.on('chat-joined-room', (data: any) => {
+        console.log('Socket joined room:', data);
+    });
+
+     $socket.on('connect', () => {
+      console.log('Connected to Socket.IO server', $socket.id);
+      joinSocketRoom();
+    });
+    
+    // Also try to join immediately if already connected
+    if ($socket.connected) {
+       joinSocketRoom();
+    }
+  }
 });
 
-watch(() => messages.value.length, () => {
-  nextTick(() => scrollToBottom());
+onUnmounted(() => {
+    if ($socket) {
+        $socket.off('chat-msg');
+        $socket.off('chat-joined-room');
+        $socket.off('connect');
+    }
 });
 
+function joinSocketRoom() {
+    if (currentRoom.value && user.value) {
+           console.log(`Joining room ${currentRoom.value.id}`);
+           // Event: 'chat-join-room'
+           // Payload: { pseudo, myPseudo, roomName } - Reference sends both pseudo keys
+           $socket.emit('chat-join-room', { 
+               roomName: currentRoom.value.id, 
+               pseudo: user.value.username,
+               myPseudo: user.value.username 
+           });
+    }
+}
+
+function handleIncomingMessage(data: any) {
+    try {
+        // Data is the message object directly
+        const msg = data;
+        
+        // Convert to local Message format
+        // API provides: content, dateEmis, roomName, userId, categorie
+        
+        let content = typeof msg.content === 'object' ? msg.content.description : msg.content;
+        const isImage = msg.categorie === 'NEW_IMAGE' || (typeof content === 'string' && content.startsWith('data:image'));
+        
+        const newMessage: Message = {
+            id: `msg_${Date.now()}_${Math.random()}`, 
+            username: msg.userId || 'Anonyme', 
+            userId: msg.userId,
+            text: isImage ? undefined : content,
+            image: isImage ? content : undefined,
+            timestamp: new Date(msg.dateEmis).getTime(),
+            avatar: undefined
+        };
+
+        // Check for duplicates (Optimistic UI vs Server Echo)
+        // If we recently sent a message with the same content, and the server returns it (possibly without our userId if it's 'Anonyme'), we should ignore it.
+        const isDuplicate = messages.value.some(m => {
+             const sameContent = isImage 
+                ? (m.image === content)
+                : (m.text === content);
+             
+             // Time window: 10 seconds (in case of lag)
+             const recent = (Date.now() - m.timestamp) < 10000;
+             
+             // It's a duplicate if:
+             // 1. Content matches AND
+             // 2. It was sent by ME (m.userId === user.value.username) AND
+             // 3. It is recent
+             return sameContent && m.userId === user.value?.username && recent;
+        });
+
+        // Also check strict userId match if server sends it correctly
+        const isOwnMessage = msg.userId === user.value?.username;
+
+        if (!isDuplicate && !isOwnMessage) {
+             messages.value.push(newMessage);
+             scrollToBottom();
+             
+             // Vibrate on new message (if not own)
+             if (navigator.vibrate) {
+                navigator.vibrate(200);
+             }
+        } else {
+            console.log('Ignored duplicate or own message:', content);
+        }
+    } catch(e) {
+        console.error('Error parsing incoming message', e);
+    }
+}
+
+// Restoration of methods that were accidentally removed
 function loadUser() {
   const stored = localStorage.getItem('pwa_user');
   if (stored) {
@@ -171,20 +276,33 @@ function saveMessages() {
 function sendMessage() {
   if (!messageText.value.trim() || !user.value) return;
 
+  const text = messageText.value;
+  
   const message: Message = {
     id: `msg_${Date.now()}`,
     username: user.value.username,
     userId: user.value.username,
     avatar: user.value.avatar,
-    text: messageText.value,
+    text: text,
     timestamp: Date.now()
   };
 
+  // Send via Socket
+  // Event: 'chat-msg'
+  // Payload: { content, roomName }
+  if (currentRoom.value) {
+      $socket.emit('chat-msg', { 
+          content: text,
+          roomName: currentRoom.value.id
+      });
+  }
+
+  // Optimistic update
   messages.value.push(message);
   saveMessages();
   messageText.value = '';
 
-  sendNotification('Nouveau message', `${user.value.username}: ${message.text}`);
+  sendNotification('Nouveau message', `${user.value.username}: ${text}`);
 }
 
 // Watch for new messages to trigger vibration (simulated for demonstration)
@@ -225,6 +343,14 @@ function onPhotoCapture(imageData: string) {
     image: imageData,
     timestamp: Date.now()
   };
+
+  if (currentRoom.value) {
+      $socket.emit('chat-msg', { 
+          content: imageData,
+          roomName: currentRoom.value.id,
+          categorie: 'NEW_IMAGE'
+      });
+  }
 
   messages.value.push(message);
   saveMessages();
@@ -357,6 +483,8 @@ function sendNotification(title: string, body: string) {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  /* Push messages to the bottom */
+  justify-content: flex-end; 
 }
 
 .empty-chat {

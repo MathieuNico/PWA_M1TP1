@@ -24,4 +24,3 @@ jobs:
             echo "DOCKERHUB_REPO=${{ secrets.DOCKERHUB_REPO }}" > .env
             docker compose pull
             docker compose up -d
-            docker image prune -f

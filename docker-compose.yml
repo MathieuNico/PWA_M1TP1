@@ -1,0 +1,9 @@
+services:
+  nuxt-app:
+    image: ${DOCKERHUB_REPO}:latest
+    container_name: nuxt-app
+    ports:
+      - "3000:3000"
+    restart: always
+    environment:
+      - NODE_ENV=production

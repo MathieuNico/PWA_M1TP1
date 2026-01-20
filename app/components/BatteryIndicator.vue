@@ -61,19 +61,4 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
-.battery-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  background: rgba(0,0,0,0.2);
-  padding: 0.3rem 0.6rem;
-  border-radius: 1rem;
-  font-size: 0.9rem;
-}
-
-.battery-text {
-  font-weight: 600;
-  color: #fff;
-}
-</style>
+<style scoped src="~/assets/css/BatteryIndicator.css"></style>

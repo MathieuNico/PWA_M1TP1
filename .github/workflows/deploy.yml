@@ -20,6 +20,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             echo "DOCKERHUB_REPO=${{ secrets.DOCKERHUB_REPO }}" > .env
             docker compose pull
             docker compose up -d
+            docker logout

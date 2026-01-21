@@ -36,26 +36,12 @@ export default defineNuxtConfig({
       ]
     },
     workbox: {
-      navigateFallback: '/index.html',
+      navigateFallback: '/',
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
-      cleanupOutdatedCaches: true,
-      runtimeCaching: [
-        {
-          urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
-          handler: 'CacheFirst',
-          options: {
-            cacheName: 'google-fonts',
-            expiration: {
-              maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 365
-            }
-          }
-        }
-      ]
+      cleanupOutdatedCaches: true
     },
     devOptions: {
-      enabled: true,
-      suppressWarnings: true,
+      enabled: false, // Disable dev pwa to avoid confusion
       type: 'module'
     },
     client: {
@@ -64,9 +50,8 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
-    experimental: {
-      websocket: false
-    }
+    serveStatic: true,
+    compressPublicAssets: true
   },
   experimental: {
     appManifest: false,

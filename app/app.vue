@@ -32,5 +32,6 @@ onMounted(() => {
 // Provide navigation and room context
 provide('navigate', navigate);
 provide('currentRoomId', currentRoomId);
-
 </script>
+
+<style src="~/assets/css/app.css"></style>

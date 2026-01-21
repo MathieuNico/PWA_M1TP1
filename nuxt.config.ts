@@ -1,9 +1,15 @@
 // nuxt.config.ts
 export default defineNuxtConfig({
   compatibilityDate: '2025-10-23',
-  modules: ['@vite-pwa/nuxt'
-    // '~/modules/socket-io' // Désactivé temporairement
-  ],
+  modules: ['@vite-pwa/nuxt'],
+
+  app: {
+    head: {
+      link: [
+        { rel: 'manifest', href: '/manifest.webmanifest' }
+      ]
+    }
+  },
 
   pwa: {
     registerType: 'autoUpdate',

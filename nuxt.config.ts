@@ -2,13 +2,16 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-10-23',
   ssr: false,
+
+  css: [
+    '~/assets/css/app.css'
+  ],
+
   modules: [
     '@vite-pwa/nuxt'
   ],
 
   pwa: {
-    // temporarily disable to check if it's the cause of 500 errors
-    // disable: true, 
     registerType: 'autoUpdate',
     manifest: {
       name: 'PWA Chat & Gallery - Application Progressive',
@@ -41,7 +44,7 @@ export default defineNuxtConfig({
       cleanupOutdatedCaches: true
     },
     devOptions: {
-      enabled: false, // Disable dev pwa to avoid confusion
+      enabled: false,
       type: 'module'
     },
     client: {

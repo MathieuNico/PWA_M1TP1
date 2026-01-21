@@ -50,8 +50,7 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
-    serveStatic: true,
-    compressPublicAssets: true
+    // Laisse Nitro gérer les assets par défaut
   },
   experimental: {
     appManifest: false,

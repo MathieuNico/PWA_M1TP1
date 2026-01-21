@@ -53,6 +53,19 @@
         <button @click="openCamera" class="camera-btn" title="Prendre une photo">
           📷
         </button>
+        <button @click="triggerFileUpload" class="attach-btn" title="Envoyer une image">
+          📎
+        </button>
+        <button @click="shareLocation" class="location-btn" title="Partager ma position">
+          📍
+        </button>
+        <input 
+          type="file" 
+          ref="fileInput" 
+          accept="image/*" 
+          class="hidden-file-input" 
+          @change="handleFileUpload"
+        />
         <input 
           v-model="messageText" 
           type="text" 
@@ -119,6 +132,8 @@ const messageText = ref('');
 const cameraOpen = ref(false);
 const viewingImage = ref<string | null>(null);
 const messagesArea = ref<HTMLDivElement | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
+const joinTime = Date.now();
 
 onMounted(() => {
   loadUser();
@@ -138,6 +153,20 @@ onMounted(() => {
     $socket.on('chat-msg', (data: any) => {
       console.log('Socket message received:', data);
       handleIncomingMessage(data);
+      
+      // Unified notification logic
+      const sender = data.pseudo || data.userId || 'Anonyme';
+      const msgTime = new Date(data.dateEmis || Date.now()).getTime();
+
+      // Only notify for messages received AFTER joining
+      if (sender !== user.value?.username && sender !== 'SERVER' && msgTime > joinTime) {
+          let body = data.content;
+          if (typeof body === 'object') body = body.description || 'Fichier joint';
+          if (data.categorie === 'NEW_IMAGE' || (typeof body === 'string' && body.startsWith('data:image'))) {
+              body = 'Image partagée';
+          }
+          sendNotification(`Nouveau message de ${sender}`, body);
+      }
     });
 
     $socket.on('chat-joined-room', (data: any) => {
@@ -154,6 +183,9 @@ onMounted(() => {
        joinSocketRoom();
     }
   }
+
+  // Load history from API
+  fetchHistory();
 });
 
 onUnmounted(() => {
@@ -179,44 +211,31 @@ function joinSocketRoom() {
 
 function handleIncomingMessage(data: any) {
     try {
-        // Data is the message object directly
         const msg = data;
-        
-        // Convert to local Message format
-        // API provides: content, dateEmis, roomName, userId, categorie
+        const sender = msg.pseudo || msg.userId || 'Anonyme';
         
         let content = typeof msg.content === 'object' ? msg.content.description : msg.content;
         const isImage = msg.categorie === 'NEW_IMAGE' || (typeof content === 'string' && content.startsWith('data:image'));
         
         const newMessage: Message = {
-            id: `msg_${Date.now()}_${Math.random()}`, 
-            username: msg.userId || 'Anonyme', 
-            userId: msg.userId,
+            id: msg.id || `msg_${Date.now()}_${Math.random()}`, 
+            username: sender, 
+            userId: sender,
             text: isImage ? undefined : content,
             image: isImage ? content : undefined,
-            timestamp: new Date(msg.dateEmis).getTime(),
+            timestamp: new Date(msg.dateEmis || Date.now()).getTime(),
             avatar: undefined
         };
 
-        // Check for duplicates (Optimistic UI vs Server Echo)
-        // If we recently sent a message with the same content, and the server returns it (possibly without our userId if it's 'Anonyme'), we should ignore it.
+        // Check for duplicates
         const isDuplicate = messages.value.some(m => {
-             const sameContent = isImage 
-                ? (m.image === content)
-                : (m.text === content);
-             
-             // Time window: 10 seconds (in case of lag)
-             const recent = (Date.now() - m.timestamp) < 10000;
-             
-             // It's a duplicate if:
-             // 1. Content matches AND
-             // 2. It was sent by ME (m.userId === user.value.username) AND
-             // 3. It is recent
-             return sameContent && m.userId === user.value?.username && recent;
+             const sameContent = isImage ? (m.image === content) : (m.text === content);
+             const sameUser = m.userId === sender;
+             const recent = Math.abs(m.timestamp - newMessage.timestamp) < 10000;
+             return sameContent && sameUser && recent;
         });
 
-        // Also check strict userId match if server sends it correctly
-        const isOwnMessage = msg.userId === user.value?.username;
+        const isOwnMessage = sender === user.value?.username;
 
         if (!isDuplicate && !isOwnMessage) {
              messages.value.push(newMessage);
@@ -242,6 +261,58 @@ function loadUser() {
   } else {
     // Redirect to reception if not logged in
     if (navigate) navigate('reception');
+  }
+}
+
+async function fetchHistory() {
+  if (!currentRoomId?.value) return;
+  
+  try {
+    const response = await fetch('https://api.tools.gavago.fr/socketio/api/rooms');
+    const data = await response.json();
+    
+    if (data.success && data.data && data.data[currentRoomId.value]) {
+      const apiConversations = data.data[currentRoomId.value].conversations || [];
+      
+      // Map API format to local format
+      const historyMessages: Message[] = apiConversations
+        .filter((msg: any) => msg.categorie === 'MESSAGE' || msg.categorie === 'NEW_IMAGE')
+        .map((msg: any) => {
+          const isImage = msg.categorie === 'NEW_IMAGE' || (typeof msg.content === 'string' && msg.content.startsWith('data:image'));
+          return {
+            id: `hist_${msg.dateEmis}_${Math.random()}`,
+            username: msg.pseudo || 'Anonyme',
+            userId: msg.pseudo,
+            text: isImage ? undefined : msg.content,
+            image: isImage ? msg.content : undefined,
+            timestamp: new Date(msg.dateEmis).getTime(),
+            avatar: undefined
+          };
+        });
+
+      // Merge history with existing messages
+      const existing = [...messages.value];
+      
+      historyMessages.forEach(histMsg => {
+        const isDuplicate = existing.some(m => {
+          const sameContent = histMsg.image ? (m.image === histMsg.image) : (m.text === histMsg.text);
+          const sameUser = m.userId === histMsg.userId;
+          const sameTime = Math.abs(m.timestamp - histMsg.timestamp) < 10000;
+          return sameContent && sameUser && sameTime;
+        });
+        
+        if (!isDuplicate) {
+          existing.push(histMsg);
+        }
+      });
+
+      // Sort by timestamp guaranteed
+      messages.value = existing.sort((a, b) => a.timestamp - b.timestamp);
+      saveMessages();
+      scrollToBottom();
+    }
+  } catch (err) {
+    console.error('Erreur récupération historique:', err);
   }
 }
 
@@ -328,6 +399,28 @@ function openCamera() {
   cameraOpen.value = true;
 }
 
+function triggerFileUpload() {
+  fileInput.value?.click();
+}
+
+function handleFileUpload(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const imageData = e.target?.result as string;
+    if (imageData) {
+      onPhotoCapture(imageData);
+    }
+  };
+  reader.readAsDataURL(file);
+  
+  // Reset input
+  target.value = '';
+}
+
 function onPhotoCapture(imageData: string) {
   if (!user.value) return;
 
@@ -356,6 +449,49 @@ function onPhotoCapture(imageData: string) {
   saveMessages();
 
   sendNotification('Photo partagée !', `${user.value.username} a partagé une photo.`);
+}
+
+function shareLocation() {
+  if (!navigator.geolocation) {
+    alert("La géolocalisation n'est pas supportée par votre navigateur.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const { latitude, longitude } = position.coords;
+      const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+      const messageText = `Ma position actuelle : ${mapsUrl}`;
+      
+      // We can't directly call sendMessage because it uses the ref messageText
+      // So we implement a simplified send logic here
+      if (!user.value || !currentRoom.value) return;
+
+      const message: Message = {
+        id: `msg_${Date.now()}`,
+        username: user.value.username,
+        userId: user.value.username,
+        avatar: user.value.avatar,
+        text: messageText,
+        timestamp: Date.now()
+      };
+
+      $socket.emit('chat-msg', { 
+          content: messageText,
+          roomName: currentRoom.value.id
+      });
+
+      messages.value.push(message);
+      saveMessages();
+      scrollToBottom();
+      
+      sendNotification('Position partagée', `${user.value.username} a partagé sa position.`);
+    },
+    (error) => {
+      console.error("Erreur de géolocalisation:", error);
+      alert("Impossible de récupérer votre position.");
+    }
+  );
 }
 
 function saveToGallery(imageData: string) {
@@ -390,8 +526,16 @@ function formatTime(timestamp: number): string {
 }
 
 function sendNotification(title: string, body: string) {
-  if ('Notification' in window && Notification.permission === 'granted') {
+  console.log("Tentative d'envoi de notification:", title, body);
+  if (!('Notification' in window)) {
+    console.warn('Les notifications ne sont pas supportées par ce navigateur.');
+    return;
+  }
+  
+  if (Notification.permission === 'granted') {
     new Notification(title, { body, icon: '/icons/icon-192x192.png' });
+  } else {
+    console.warn('Permission de notification non accordée:', Notification.permission);
   }
 }
 </script>

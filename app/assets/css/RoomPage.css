@@ -198,6 +198,50 @@
     transform: scale(1.05);
 }
 
+.attach-btn {
+    background: #10b981;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.attach-btn:hover {
+    background: #059669;
+    transform: scale(1.05);
+}
+
+.location-btn {
+    background: #f59e0b;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.location-btn:hover {
+    background: #d97706;
+    transform: scale(1.05);
+}
+
+.hidden-file-input {
+    display: none;
+}
+
 .input-area input {
     flex: 1;
     padding: 0.9rem 1.2rem;

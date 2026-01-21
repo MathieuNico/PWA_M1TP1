@@ -299,14 +299,25 @@ function formatDate(timestamp: number): string {
 }
 
 async function requestNotificationPermission() {
-  if ('Notification' in window && Notification.permission === 'default') {
-    await Notification.requestPermission();
+  if (!('Notification' in window)) {
+    console.log('Les notifications ne sont pas supportées.');
+    return;
+  }
+
+  if (Notification.permission === 'default') {
+    const permission = await Notification.requestPermission();
+    console.log('Résultat de la demande de permission:', permission);
+  } else {
+    console.log('Statut actuel des notifications:', Notification.permission);
   }
 }
 
 function sendNotification(title: string, body: string) {
+  console.log('Notification:', title, body);
   if ('Notification' in window && Notification.permission === 'granted') {
     new Notification(title, { body, icon: '/icons/icon-192x192.png' });
+  } else {
+    console.warn('Notifications non autorisées ou non supportées');
   }
 }
 </script>

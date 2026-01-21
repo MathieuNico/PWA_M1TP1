@@ -8,10 +8,14 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "clean": "npx nuxi cleanup && rm -rf .nuxt node_modules/.cache",
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@vite-pwa/nuxt": "^1.0.4",
@@ -23,12 +27,27 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@chromatic-com/storybook": "^5.0.0",
+    "@nuxt/test-utils": "^3.23.0",
+    "@playwright/test": "^1.57.0",
+    "@storybook-vue/nuxt": "^9.0.1",
+    "@storybook/addon-a11y": "^10.1.11",
+    "@storybook/addon-docs": "^10.1.11",
+    "@storybook/addon-essentials": "^8.6.14",
+    "@storybook/addon-interactions": "^8.6.14",
+    "@storybook/addon-onboarding": "^10.1.11",
+    "@storybook/addon-vitest": "^10.1.11",
+    "@storybook/vue3-vite": "^10.1.11",
     "@vitejs/plugin-vue": "^6.0.1",
-    "@vitest/ui": "^4.0.2",
+    "@vitest/browser-playwright": "^4.0.17",
+    "@vitest/coverage-v8": "^4.0.17",
+    "@vitest/ui": "^4.0.17",
     "@vue/test-utils": "^2.4.6",
-    "happy-dom": "^20.0.8",
+    "happy-dom": "^20.3.4",
     "jsdom": "^27.0.1",
+    "playwright": "^1.57.0",
+    "storybook": "^10.1.11",
     "vite": "^7.1.12",
-    "vitest": "^4.0.2"
+    "vitest": "^4.0.17"
   }
 }

@@ -1,11 +1,14 @@
 // nuxt.config.ts
 export default defineNuxtConfig({
   compatibilityDate: '2025-10-23',
-  modules: ['@vite-pwa/nuxt'
-    // '~/modules/socket-io' // Désactivé temporairement
+  ssr: false,
+  modules: [
+    '@vite-pwa/nuxt'
   ],
 
   pwa: {
+    // temporarily disable to check if it's the cause of 500 errors
+    // disable: true, 
     registerType: 'autoUpdate',
     manifest: {
       name: 'PWA Chat & Gallery - Application Progressive',
@@ -33,9 +36,9 @@ export default defineNuxtConfig({
       ]
     },
     workbox: {
-      navigateFallback: '/',
+      navigateFallback: '/index.html',
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
-      // Simplified runtime caching
+      cleanupOutdatedCaches: true,
       runtimeCaching: [
         {
           urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
@@ -52,6 +55,7 @@ export default defineNuxtConfig({
     },
     devOptions: {
       enabled: true,
+      suppressWarnings: true,
       type: 'module'
     },
     client: {
@@ -63,5 +67,9 @@ export default defineNuxtConfig({
     experimental: {
       websocket: false
     }
+  },
+  experimental: {
+    appManifest: false,
+    payloadExtraction: false
   }
 })

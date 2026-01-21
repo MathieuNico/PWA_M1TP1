@@ -1,8 +1,11 @@
 .room-page {
-    min-height: 100vh;
+    height: 100dvh;
+    height: 100vh;
+    /* Fallback */
     background: #f3f4f6;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .room-header {
@@ -75,18 +78,19 @@
     max-width: 1000px;
     width: 100%;
     margin: 0 auto;
-    height: calc(100vh - 80px);
+    overflow: hidden;
+    position: relative;
 }
 
 .messages-area {
     flex: 1;
     overflow-y: auto;
-    padding: 1.5rem;
+    padding: 1rem;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    /* Push messages to the bottom */
-    justify-content: flex-end;
+    gap: 0.8rem;
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scroll on iOS */
 }
 
 .empty-chat {
@@ -99,9 +103,9 @@
 .message {
     display: flex;
     flex-direction: column;
-    max-width: 70%;
+    max-width: 85%;
     align-self: flex-start;
-    animation: slideIn 0.3s ease;
+    animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .own-message {
@@ -136,14 +140,20 @@
 
 .message-content {
     background: #fff;
-    border-radius: 0.8rem;
-    padding: 0.8rem 1rem;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    border-radius: 1rem;
+    border-top-left-radius: 0.2rem;
+    padding: 0.7rem 0.9rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .own-message .message-content {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #fff;
+    border-radius: 1rem;
+    border-top-right-radius: 0.2rem;
+    border-top-left-radius: 1rem;
+    border: none;
 }
 
 .own-message .message-username {
@@ -171,71 +181,58 @@
 
 .input-area {
     background: #fff;
-    padding: 1rem 1.5rem;
+    padding: 0.8rem 1rem;
+    padding-bottom: calc(0.8rem + env(safe-area-inset-bottom));
     display: flex;
-    gap: 0.8rem;
-    align-items: center;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+    gap: 0.5rem;
+    align-items: flex-end;
+    /* Align to bottom for multiline potential */
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.camera-btn,
+.attach-btn,
+.location-btn {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    font-size: 1.2rem;
 }
 
 .camera-btn {
     background: #667eea;
     border: none;
     color: #fff;
-    font-size: 1.5rem;
-    width: 48px;
-    height: 48px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s, transform 0.2s;
-}
-
-.camera-btn:hover {
-    background: #5568d3;
-    transform: scale(1.05);
+    transition: all 0.2s;
 }
 
 .attach-btn {
     background: #10b981;
     border: none;
     color: #fff;
-    font-size: 1.5rem;
-    width: 48px;
-    height: 48px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s, transform 0.2s;
-}
-
-.attach-btn:hover {
-    background: #059669;
-    transform: scale(1.05);
+    transition: all 0.2s;
 }
 
 .location-btn {
     background: #f59e0b;
     border: none;
     color: #fff;
-    font-size: 1.5rem;
-    width: 48px;
-    height: 48px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s, transform 0.2s;
-}
-
-.location-btn:hover {
-    background: #d97706;
-    transform: scale(1.05);
+    transition: all 0.2s;
 }
 
 .hidden-file-input {
@@ -244,33 +241,44 @@
 
 .input-area input {
     flex: 1;
-    padding: 0.9rem 1.2rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.6rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 1.5rem;
     font-size: 1rem;
     outline: none;
-    transition: border 0.2s;
+    transition: all 0.2s;
+    background: #f9fafb;
 }
 
 .input-area input:focus {
     border-color: #667eea;
+    background: #fff;
 }
 
 .send-btn {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
     color: #fff;
-    padding: 0.9rem 1.5rem;
-    border-radius: 0.6rem;
-    font-size: 1rem;
-    font-weight: 600;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: transform 0.2s;
-    white-space: nowrap;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    font-size: 0;
+    /* Hide text, use arrow */
 }
 
-.send-btn:hover {
-    transform: translateY(-2px);
+.send-btn::after {
+    content: '→';
+    font-size: 1.2rem;
+}
+
+.send-btn:active {
+    transform: scale(0.9);
 }
 
 .image-modal {

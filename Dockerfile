@@ -6,7 +6,7 @@ WORKDIR /src
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies (using legacy-peer-deps for Nuxt 4 ecosystem conflicts)
 RUN npm install --legacy-peer-deps
 
 # Copy project files
@@ -32,5 +32,5 @@ ENV NODE_ENV=production
 
 EXPOSE 3000
 
-# Start the application
+# Start the application using the standalone server
 CMD ["node", ".output/server/index.mjs"]

@@ -4,12 +4,12 @@ export default defineNuxtConfig({
   modules: ['@vite-pwa/nuxt'
     // '~/modules/socket-io' // Désactivé temporairement
   ],
-  
+
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
       name: 'PWA Chat & Gallery - Application Progressive',
-      short_name: 'PWA Chat', 
+      short_name: 'PWA Chat',
       description: 'Application PWA avec chat, caméra, notifications et mode offline',
       theme_color: '#667eea',
       background_color: '#ffffff',
@@ -18,15 +18,15 @@ export default defineNuxtConfig({
       start_url: '/',
       orientation: 'portrait-primary',
       icons: [
-        { 
-          src: '/icons/icon-192x192.png', 
-          sizes: '192x192', 
+        {
+          src: '/icons/icon-192x192.png',
+          sizes: '192x192',
           type: 'image/png',
           purpose: 'any maskable'
         },
-        { 
-          src: '/icons/icon-512x512.png', 
-          sizes: '512x512', 
+        {
+          src: '/icons/icon-512x512.png',
+          sizes: '512x512',
           type: 'image/png',
           purpose: 'any maskable'
         }
@@ -34,57 +34,23 @@ export default defineNuxtConfig({
     },
     workbox: {
       navigateFallback: '/',
-      globPatterns: ['**/*.{js,css,html,png,jpg,jpeg,svg,ico,woff,woff2}'],
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+      // Simplified runtime caching
       runtimeCaching: [
         {
-          urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+          urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
           handler: 'CacheFirst',
           options: {
-            cacheName: 'google-fonts-cache',
+            cacheName: 'google-fonts',
             expiration: {
               maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-            },
-            cacheableResponse: {
-              statuses: [0, 200]
+              maxAgeSeconds: 60 * 60 * 24 * 365
             }
-          }
-        },
-        {
-          urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-          handler: 'CacheFirst',
-          options: {
-            cacheName: 'gstatic-fonts-cache',
-            expiration: {
-              maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-            },
-            cacheableResponse: {
-              statuses: [0, 200]
-            }
-          }
-        },
-        {
-          urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
-          handler: 'CacheFirst',
-          options: {
-            cacheName: 'images-cache',
-            expiration: {
-              maxEntries: 50,
-              maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-            }
-          }
-        },
-        {
-          urlPattern: /\.(?:js|css)$/i,
-          handler: 'StaleWhileRevalidate',
-          options: {
-            cacheName: 'static-resources-cache'
           }
         }
       ]
     },
-    devOptions: { 
+    devOptions: {
       enabled: true,
       type: 'module'
     },
@@ -95,7 +61,7 @@ export default defineNuxtConfig({
   },
   nitro: {
     experimental: {
-      websocket: false 
+      websocket: false
     }
   }
 })

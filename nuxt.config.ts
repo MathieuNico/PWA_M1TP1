@@ -34,12 +34,6 @@ export default defineNuxtConfig({
     },
     workbox: {
       navigateFallback: '/',
-      navigateFallbackDenylist: [
-        /^\/_nuxt\//,
-        /^\/icons\//,
-        /^\/favicon\.ico$/,
-      ],
-      cleanupOutdatedCaches: true,
       globPatterns: ['**/*.{js,css,html,png,jpg,jpeg,svg,ico,woff,woff2}'],
       runtimeCaching: [
         {
@@ -80,6 +74,13 @@ export default defineNuxtConfig({
               maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
             }
           }
+        },
+        {
+          urlPattern: /\.(?:js|css)$/i,
+          handler: 'StaleWhileRevalidate',
+          options: {
+            cacheName: 'static-resources-cache'
+          }
         }
       ]
     },
@@ -93,7 +94,6 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
-    preset: 'node-server',
     experimental: {
       websocket: false
     }

@@ -12,9 +12,9 @@ export default defineNuxtConfig({
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
-      name: 'PWA Chat & Gallery',
+      name: 'PWA Chat',
       short_name: 'ChatPWA',
-      description: 'PWA Chat Application',
+      description: 'Application Chat PWA',
       theme_color: '#667eea',
       background_color: '#ffffff',
       display: 'standalone',
@@ -35,12 +35,13 @@ export default defineNuxtConfig({
     },
     workbox: {
       navigateFallback: '/',
-      globPatterns: ['**/*.{js,css,html,png,svg,ico}']
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+      cleanupOutdatedCaches: true
     }
   },
 
   nitro: {
-    // Standard Nitro server
+    preset: 'node-server'
   },
 
   experimental: {
@@ -49,11 +50,16 @@ export default defineNuxtConfig({
   },
 
   app: {
+    baseURL: '/',
+    buildAssetsDir: '/_nuxt/',
     head: {
       title: 'PWA Chat',
       meta: [
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'theme-color', content: '#667eea' }
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' }
+      ],
+      link: [
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
       ]
     }
   }

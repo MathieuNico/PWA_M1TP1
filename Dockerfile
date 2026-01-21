@@ -1,35 +1,29 @@
+# ======================
 # Build stage
+# ======================
 FROM node:20-alpine AS build
 
-WORKDIR /src
+WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
+RUN npm install
 
-# Install dependencies
-RUN npm install --legacy-peer-deps
-
-# Copy project files
 COPY . .
-
-# Build the application
 RUN npm run build
 
+# ======================
 # Production stage
+# ======================
 FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Copy output from build stage
-COPY --from=build /src/.output ./.output
+COPY --from=build /app/.output ./.output
 
-# Set environment variables
+ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3000
-ENV NODE_ENV=production
-ENV NITRO_PUBLIC_DIR=/app/.output/public
 
 EXPOSE 3000
 
-# Start the application
 CMD ["node", ".output/server/index.mjs"]

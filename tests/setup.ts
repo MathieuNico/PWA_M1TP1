@@ -62,7 +62,6 @@ HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
 
 HTMLCanvasElement.prototype.toDataURL = vi.fn().mockReturnValue('data:image/jpeg;base64,mock-image-data')
 
-
 // Reset all mocks before each test
 beforeEach(() => {
   vi.clearAllMocks()

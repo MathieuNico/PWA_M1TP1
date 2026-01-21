@@ -33,7 +33,7 @@ Object.defineProperty(navigator, 'mediaDevices', {
 })
 
 // Mock Notification as a proper constructor
-const NotificationMock = vi.fn().mockImplementation(function(this: any, title: string, options?: any) {
+const NotificationMock = vi.fn().mockImplementation(function (this: any, title: string, options?: any) {
   this.title = title
   this.body = options?.body
   this.icon = options?.icon
@@ -61,6 +61,7 @@ HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
 })
 
 HTMLCanvasElement.prototype.toDataURL = vi.fn().mockReturnValue('data:image/jpeg;base64,mock-image-data')
+
 
 // Reset all mocks before each test
 beforeEach(() => {

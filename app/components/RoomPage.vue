@@ -511,9 +511,11 @@ function openImage(imageUrl: string) {
 }
 
 function scrollToBottom() {
-  if (messagesArea.value) {
-    messagesArea.value.scrollTop = messagesArea.value.scrollHeight;
-  }
+  nextTick(() => {
+    if (messagesArea.value) {
+      messagesArea.value.scrollTop = messagesArea.value.scrollHeight;
+    }
+  });
 }
 
 function goBack() {

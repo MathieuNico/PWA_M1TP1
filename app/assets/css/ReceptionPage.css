@@ -455,5 +455,6 @@
         -webkit-box-orient: vertical;
         line-clamp: 1;
         overflow: hidden;
+        word-break: break-all;
     }
 }

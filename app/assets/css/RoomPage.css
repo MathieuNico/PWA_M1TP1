@@ -184,6 +184,7 @@
     margin: 0;
     line-height: 1.5;
     word-wrap: break-word;
+    word-break: break-word;
 }
 
 .message-image {

@@ -27,6 +27,7 @@ COPY --from=build /src/.output ./.output
 ENV HOST=0.0.0.0
 ENV PORT=3000
 ENV NODE_ENV=production
+ENV NITRO_PUBLIC_DIR=/app/.output/public
 
 EXPOSE 3000
 
